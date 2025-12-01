@@ -5,12 +5,44 @@ document.addEventListener("DOMContentLoaded", () => {
 	const boxElementBtn = document.getElementById("box-element");
 	const clearAllBtn = document.getElementById("clear-all");
 	const colorInput = document.getElementById("line-color");
+	const themeToggleBtn = document.getElementById("theme-toggle");
 
-	// Load saved color
-	chrome.storage.local.get(["lineColor"], (result) => {
+	// Theme handling
+	function applyTheme(theme) {
+		if (theme === "dark" || theme === "light") {
+			document.documentElement.setAttribute("data-theme", theme);
+		} else {
+			document.documentElement.removeAttribute("data-theme");
+		}
+	}
+
+	// Load saved settings
+	chrome.storage.local.get(["lineColor", "theme"], (result) => {
 		if (result.lineColor) {
 			colorInput.value = result.lineColor;
 		}
+		if (result.theme) {
+			applyTheme(result.theme);
+		}
+	});
+
+	themeToggleBtn.addEventListener("click", () => {
+		const currentTheme =
+			document.documentElement.getAttribute("data-theme");
+		const systemDark = window.matchMedia(
+			"(prefers-color-scheme: dark)"
+		).matches;
+
+		let newTheme;
+		if (currentTheme) {
+			newTheme = currentTheme === "dark" ? "light" : "dark";
+		} else {
+			// If no override, switch to opposite of system
+			newTheme = systemDark ? "light" : "dark";
+		}
+
+		applyTheme(newTheme);
+		chrome.storage.local.set({ theme: newTheme });
 	});
 
 	// Helper to send message to active tab

@@ -1,76 +1,317 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
+:root {
+	/* Light Mode Defaults */
+	--bg-color: #f4f4f9;
+	--text-color: #333;
+	--h2-color: #555;
+	--font-family: "Inter", sans-serif;
+	--btn-radius: 8px;
+	--btn-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	--btn-hover-transform: translateY(-1px);
+
+	--btn-vertical-bg: #3498db;
+	--btn-horizontal-bg: #e74c3c;
+	--btn-ruler-bg: #f39c12;
+	--btn-box-bg: #9b59b6;
+	--btn-clear-bg: #e0e0e0;
+	--btn-clear-text: #555;
+	--btn-clear-border: 1px solid #ccc;
+
+	--shortcut-color: #666;
+	--shortcut-border: #ddd;
+	--shortcut-key-bg: #e0e0e0;
+	--shortcut-key-border: 1px solid #ccc;
+	--shortcut-key-padding: 2px 6px;
+
+	--picker-bg: #e0e0e0;
+	--picker-border: 1px solid #ccc;
+	--picker-label: #555;
+	--picker-input-border: #ccc;
+
+	--toggle-color: #555;
+}
+
+/* Dark Mode (System Preference) */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg-color: #1a1b1e;
+		--text-color: #e0e0e0;
+		--h2-color: #a0a0a0;
+		--font-family: "Inter", sans-serif;
+		--btn-radius: 8px;
+		--btn-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+		--btn-hover-transform: translateY(-1px);
+
+		--btn-vertical-bg: linear-gradient(135deg, #3498db, #2980b9);
+		--btn-horizontal-bg: linear-gradient(135deg, #e74c3c, #c0392b);
+		--btn-ruler-bg: linear-gradient(135deg, #f39c12, #d35400);
+		--btn-box-bg: linear-gradient(135deg, #9b59b6, #8e44ad);
+		--btn-clear-bg: #2c2e33;
+		--btn-clear-text: #a0a0a0;
+		--btn-clear-border: 1px solid #404040;
+
+		--shortcut-color: #888;
+		--shortcut-border: #333;
+		--shortcut-key-bg: #25262b;
+		--shortcut-key-border: 1px solid #333;
+		--shortcut-key-padding: 2px 6px;
+
+		--picker-bg: #25262b;
+		--picker-border: 1px solid #333;
+		--picker-label: #a0a0a0;
+		--picker-input-border: #404040;
+
+		--toggle-color: #e0e0e0;
+	}
+}
+
+/* Manual Overrides */
+[data-theme="light"] {
+	--bg-color: #f4f4f9;
+	--text-color: #333;
+	--h2-color: #555;
+	--font-family: "Inter", sans-serif;
+	--btn-radius: 8px;
+	--btn-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	--btn-hover-transform: translateY(-1px);
+
+	--btn-vertical-bg: #3498db;
+	--btn-horizontal-bg: #e74c3c;
+	--btn-ruler-bg: #f39c12;
+	--btn-box-bg: #9b59b6;
+	--btn-clear-bg: #e0e0e0;
+	--btn-clear-text: #555;
+	--btn-clear-border: 1px solid #ccc;
+
+	--shortcut-color: #666;
+	--shortcut-border: #ddd;
+	--shortcut-key-bg: #e0e0e0;
+	--shortcut-key-border: 1px solid #ccc;
+	--shortcut-key-padding: 2px 6px;
+
+	--picker-bg: #e0e0e0;
+	--picker-border: 1px solid #ccc;
+	--picker-label: #555;
+	--picker-input-border: #ccc;
+
+	--toggle-color: #555;
+}
+
+[data-theme="dark"] {
+	--bg-color: #1a1b1e;
+	--text-color: #e0e0e0;
+	--h2-color: #a0a0a0;
+	--font-family: "Inter", sans-serif;
+	--btn-radius: 8px;
+	--btn-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	--btn-hover-transform: translateY(-1px);
+
+	--btn-vertical-bg: linear-gradient(135deg, #3498db, #2980b9);
+	--btn-horizontal-bg: linear-gradient(135deg, #e74c3c, #c0392b);
+	--btn-ruler-bg: linear-gradient(135deg, #f39c12, #d35400);
+	--btn-box-bg: linear-gradient(135deg, #9b59b6, #8e44ad);
+	--btn-clear-bg: #2c2e33;
+	--btn-clear-text: #a0a0a0;
+	--btn-clear-border: 1px solid #404040;
+
+	--shortcut-color: #888;
+	--shortcut-border: #333;
+	--shortcut-key-bg: #25262b;
+	--shortcut-key-border: 1px solid #333;
+	--shortcut-key-padding: 2px 6px;
+
+	--picker-bg: #25262b;
+	--picker-border: 1px solid #333;
+	--picker-label: #a0a0a0;
+	--picker-input-border: #404040;
+
+	--toggle-color: #e0e0e0;
+}
+
+html {
+	background-color: var(--bg-color);
+}
+
 body {
-	width: 250px;
-	padding: 15px;
-	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-	background-color: #f4f4f9;
-	color: #333;
+	width: 280px;
+	padding: 20px;
+	font-family: var(--font-family);
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	margin: 0;
+	transition: background-color 0.3s, color 0.3s;
 }
+
+.header {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 20px;
+	min-height: 32px;
+}
+
 h2 {
-	margin-top: 0;
+	margin: 0;
 	font-size: 16px;
+	font-weight: 500; /* Muted weight */
+	color: var(--h2-color);
 	text-align: center;
-	color: #555;
 }
+
+.theme-toggle {
+	position: absolute;
+	right: 0;
+	background: none;
+	border: none;
+	color: var(--toggle-color);
+	cursor: pointer;
+	padding: 4px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.theme-toggle:hover {
+	background-color: rgba(128, 128, 128, 0.1);
+}
+
+/* Icon visibility logic */
+.sun-icon {
+	display: none;
+}
+.moon-icon {
+	display: block;
+}
+
+/* If dark mode is active (via media query or class), show sun, hide moon */
+@media (prefers-color-scheme: dark) {
+	.sun-icon {
+		display: block;
+	}
+	.moon-icon {
+		display: none;
+	}
+}
+
+[data-theme="dark"] .sun-icon {
+	display: block;
+}
+[data-theme="dark"] .moon-icon {
+	display: none;
+}
+
+[data-theme="light"] .sun-icon {
+	display: none;
+}
+[data-theme="light"] .moon-icon {
+	display: block;
+}
+
 .controls {
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
 }
+
 button {
-	padding: 10px;
+	padding: 12px;
 	border: none;
-	border-radius: 5px;
+	border-radius: var(--btn-radius);
 	cursor: pointer;
-	font-weight: bold;
-	transition: background-color 0.2s;
+	font-weight: 600;
+	font-size: 13px;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	position: relative;
+	overflow: hidden;
+	color: white;
+	box-shadow: var(--btn-shadow);
 }
+
 button:hover {
+	transform: var(--btn-hover-transform);
 	opacity: 0.9;
 }
+
 .btn-vertical {
-	background-color: #3498db;
-	color: white;
+	background: var(--btn-vertical-bg);
 }
 .btn-horizontal {
-	background-color: #e74c3c;
-	color: white;
-}
-.btn-clear {
-	background-color: #95a5a6;
-	color: white;
-	margin-top: 10px;
+	background: var(--btn-horizontal-bg);
 }
 .btn-ruler {
-	background-color: #f39c12;
-	color: white;
+	background: var(--btn-ruler-bg);
 }
 .btn-box {
-	background-color: #9b59b6;
-	color: white;
+	background: var(--btn-box-bg);
 }
+
+.btn-clear {
+	background: var(--btn-clear-bg);
+	color: var(--btn-clear-text);
+	border: var(--btn-clear-border);
+	margin-top: 15px;
+}
+
 .color-picker {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-top: 10px;
-	font-size: 14px;
+	margin-top: 15px;
+	padding: 10px;
+	background: var(--picker-bg);
+	border-radius: 8px;
+	border: var(--picker-border);
 }
+
+.color-picker label {
+	font-size: 13px;
+	color: var(--picker-label);
+}
+
 input[type="color"] {
 	border: none;
-	width: 30px;
-	height: 30px;
+	width: 32px;
+	height: 32px;
 	cursor: pointer;
 	background: none;
+	padding: 0;
 }
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+	border: none;
+	border-radius: 50%;
+	border: 2px solid var(--picker-input-border);
+}
+
 .shortcuts {
-	margin-top: 15px;
+	margin-top: 20px;
 	font-size: 11px;
-	color: #777;
-	border-top: 1px solid #ddd;
-	padding-top: 10px;
+	color: var(--shortcut-color);
+	border-top: 1px solid var(--shortcut-border);
+	padding-top: 15px;
 }
+
 .shortcut-item {
 	display: flex;
 	justify-content: space-between;
-	margin-bottom: 4px;
+	margin-bottom: 6px;
+}
+
+.shortcut-item span:first-child {
+	font-family: monospace;
+	background: var(--shortcut-key-bg);
+	padding: var(--shortcut-key-padding);
+	border-radius: 4px;
+	border: var(--shortcut-key-border);
 }
