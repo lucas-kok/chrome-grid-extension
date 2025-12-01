@@ -1,0 +1,25 @@
+.layout-grid-line {
+	position: fixed;
+	z-index: 2147483647; /* Max z-index */
+	user-select: none;
+	touch-action: none;
+}
+
+.layout-grid-line-vertical {
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	cursor: col-resize;
+}
+
+.layout-grid-line-horizontal {
+	left: 0;
+	right: 0;
+	height: 2px;
+	cursor: row-resize;
+}
+
+.layout-grid-line:hover {
+	opacity: 0.8;
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
