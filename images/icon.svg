@@ -1,0 +1,41 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ffffff"/>
+            <stop offset="1" stop-color="#f4f4f9"/>
+        </linearGradient>
+        <linearGradient id="cyan" x1="45" y1="15" x2="45" y2="115" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#00f2ff"/>
+            <stop offset="1" stop-color="#00c3ff"/>
+        </linearGradient>
+        <linearGradient id="red" x1="15" y1="85" x2="115" y2="85" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#ff6b6b"/>
+            <stop offset="1" stop-color="#e03131"/>
+        </linearGradient>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.15"/>
+        </filter>
+    </defs>
+
+    <!-- Background -->
+    <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+    
+    <!-- Grid Pattern (Subtle) -->
+    <path d="M32 0V128 M64 0V128 M96 0V128 M0 32H128 M0 64H128 M0 96H128" stroke="#e0e0e0" stroke-width="1" opacity="0.8"/>
+
+    <!-- Main Elements -->
+    <g filter="url(#shadow)">
+        <!-- Vertical Guide Line -->
+        <rect x="40" y="15" width="10" height="100" rx="5" fill="url(#cyan)"/>
+        
+        <!-- Horizontal Guide Line -->
+        <rect x="15" y="80" width="100" height="10" rx="5" fill="url(#red)"/>
+        
+        <!-- Intersection/Box Element -->
+        <rect x="50" y="25" width="55" height="55" rx="8" stroke="#f39c12" stroke-width="4" fill="rgba(243, 156, 18, 0.1)"/>
+        
+        <!-- Measurement Indicators -->
+        <circle cx="45" cy="25" r="4" fill="#fff"/>
+        <circle cx="105" cy="85" r="4" fill="#fff"/>
+    </g>
+</svg>
