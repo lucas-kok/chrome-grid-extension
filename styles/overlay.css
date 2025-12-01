@@ -23,3 +23,42 @@
 	opacity: 0.8;
 	box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
+
+.layout-grid-ruler {
+	position: fixed;
+	background-color: rgba(255, 255, 255, 0.9);
+	z-index: 2147483646; /* Just below lines */
+	pointer-events: none; /* Let clicks pass through */
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+	font-family: sans-serif;
+	font-size: 10px;
+	color: #333;
+}
+
+.layout-grid-ruler-top {
+	top: 0;
+	left: 20px;
+	right: 0;
+	height: 20px;
+	border-bottom: 1px solid #ccc;
+}
+
+.layout-grid-ruler-left {
+	top: 20px;
+	left: 0;
+	bottom: 0;
+	width: 20px;
+	border-right: 1px solid #ccc;
+}
+
+.layout-grid-ruler-corner {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 20px;
+	height: 20px;
+	background-color: #fff;
+	z-index: 2147483646;
+	border-right: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
+}

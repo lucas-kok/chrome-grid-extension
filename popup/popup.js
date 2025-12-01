@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 	const addVerticalBtn = document.getElementById("add-vertical");
 	const addHorizontalBtn = document.getElementById("add-horizontal");
+	const toggleRulerBtn = document.getElementById("toggle-ruler");
+	const boxElementBtn = document.getElementById("box-element");
 	const clearAllBtn = document.getElementById("clear-all");
 	const colorInput = document.getElementById("line-color");
 
@@ -32,6 +34,15 @@ document.addEventListener("DOMContentLoaded", () => {
 			action: "add-horizontal",
 			color: colorInput.value,
 		});
+	});
+
+	toggleRulerBtn.addEventListener("click", () => {
+		sendMessageToActiveTab({ action: "toggle-ruler" });
+	});
+
+	boxElementBtn.addEventListener("click", () => {
+		sendMessageToActiveTab({ action: "toggle-picker" });
+		window.close(); // Close popup to let user pick immediately
 	});
 
 	clearAllBtn.addEventListener("click", () => {
