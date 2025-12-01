@@ -4,84 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Layout Grid</title>
-		<style>
-			body {
-				width: 250px;
-				padding: 15px;
-				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-				background-color: #f4f4f9;
-				color: #333;
-			}
-			h2 {
-				margin-top: 0;
-				font-size: 16px;
-				text-align: center;
-				color: #555;
-			}
-			.controls {
-				display: flex;
-				flex-direction: column;
-				gap: 10px;
-			}
-			button {
-				padding: 10px;
-				border: none;
-				border-radius: 5px;
-				cursor: pointer;
-				font-weight: bold;
-				transition: background-color 0.2s;
-			}
-			button:hover {
-				opacity: 0.9;
-			}
-			.btn-vertical {
-				background-color: #3498db;
-				color: white;
-			}
-			.btn-horizontal {
-				background-color: #e74c3c;
-				color: white;
-			}
-			.btn-clear {
-				background-color: #95a5a6;
-				color: white;
-				margin-top: 10px;
-			}
-			.btn-ruler {
-				background-color: #f39c12;
-				color: white;
-			}
-			.btn-box {
-				background-color: #9b59b6;
-				color: white;
-			}
-			.color-picker {
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				margin-top: 10px;
-				font-size: 14px;
-			}
-			input[type="color"] {
-				border: none;
-				width: 30px;
-				height: 30px;
-				cursor: pointer;
-				background: none;
-			}
-			.shortcuts {
-				margin-top: 15px;
-				font-size: 11px;
-				color: #777;
-				border-top: 1px solid #ddd;
-				padding-top: 10px;
-			}
-			.shortcut-item {
-				display: flex;
-				justify-content: space-between;
-				margin-bottom: 4px;
-			}
-		</style>
+		<link rel="stylesheet" href="../styles/popup.css" />
 	</head>
 	<body>
 		<h2>Layout Grid</h2>
@@ -111,7 +34,7 @@
 				<span>Shift + H</span> <span>Add Horizontal</span>
 			</div>
 			<div class="shortcut-item">
-				<span>Right Click</span> <span>Remove Line</span>
+				<span>Shift + Click</span> <span>Remove Line</span>
 			</div>
 		</div>
 

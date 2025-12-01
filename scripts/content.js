@@ -67,13 +67,13 @@
 
 		// Add event listeners for this specific line
 		line.addEventListener("mousedown", handleLineMouseDown);
-		line.addEventListener("contextmenu", handleLineRightClick);
+		// line.addEventListener("contextmenu", handleLineRightClick);
 
 		document.body.appendChild(line);
 		lines.push(line);
 
 		if (position === undefined) {
-			saveLines(); // Save immediately if it's a new line
+			saveLines(); // Save immediately if it's a new line created manually
 		}
 
 		return line;
@@ -83,10 +83,19 @@
 	function handleLineMouseDown(e) {
 		if (e.button !== 0) return; // Only left click
 		e.preventDefault();
+		e.stopPropagation(); // Prevent selecting text or other elements
+
+		// Shift + Click to delete
+		if (e.shiftKey) {
+			removeLine(e.target);
+			return;
+		}
+
 		activeLine = e.target;
 		isDragging = true;
-	}
 
+		selectLine(activeLine);
+	}
 	function handleLineRightClick(e) {
 		e.preventDefault();
 		removeLine(e.target);
@@ -287,6 +296,8 @@
 			createLine("vertical", rect.right);
 			createLine("horizontal", rect.top);
 			createLine("horizontal", rect.bottom);
+
+			saveLines(); // Explicitly save after creating multiple lines
 
 			disableElementPicker();
 		}
