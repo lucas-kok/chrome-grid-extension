@@ -107,11 +107,64 @@
 		e.preventDefault();
 
 		const type = activeLine.dataset.type;
-		if (type === "vertical") {
-			activeLine.style.left = `${e.clientX}px`;
-		} else {
-			activeLine.style.top = `${e.clientY}px`;
+		let newPos = type === "vertical" ? e.clientX : e.clientY;
+
+		// Snapping logic (hold Alt to disable, or enable by default and hold Alt to disable?)
+		// Let's make it snap by default, hold Alt to disable
+		if (!e.altKey) {
+			const snapThreshold = 10;
+			let closestDist = Infinity;
+			let snapPos = null;
+
+			// Snap to other lines
+			lines.forEach((line) => {
+				if (line === activeLine || line.dataset.type !== type) return;
+				const pos =
+					type === "vertical"
+						? parseFloat(line.style.left)
+						: parseFloat(line.style.top);
+				const dist = Math.abs(pos - newPos);
+				if (dist < snapThreshold && dist < closestDist) {
+					closestDist = dist;
+					snapPos = pos;
+				}
+			});
+
+			// Snap to element edges under cursor
+			// We can't easily check ALL elements, but we can check the one under the cursor
+			// Temporarily hide the line to get the element below it
+			activeLine.style.display = "none";
+			const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+			activeLine.style.display = "";
+
+			if (elemBelow) {
+				const rect = elemBelow.getBoundingClientRect();
+				const edges =
+					type === "vertical"
+						? [rect.left, rect.right]
+						: [rect.top, rect.bottom];
+
+				edges.forEach((edge) => {
+					const dist = Math.abs(edge - newPos);
+					if (dist < snapThreshold && dist < closestDist) {
+						closestDist = dist;
+						snapPos = edge;
+					}
+				});
+			}
+
+			if (snapPos !== null) {
+				newPos = snapPos;
+			}
 		}
+
+		if (type === "vertical") {
+			activeLine.style.left = `${newPos}px`;
+		} else {
+			activeLine.style.top = `${newPos}px`;
+		}
+
+		updateMeasurements();
 	}
 
 	function handleMouseUp(e) {
