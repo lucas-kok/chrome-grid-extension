@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const addHorizontalBtn = document.getElementById("add-horizontal");
 	const toggleRulerBtn = document.getElementById("toggle-ruler");
 	const boxElementBtn = document.getElementById("box-element");
+	const measureToolBtn = document.getElementById("measure-tool");
 	const clearAllBtn = document.getElementById("clear-all");
 	const colorInput = document.getElementById("line-color");
 	const themeToggleBtn = document.getElementById("theme-toggle");
@@ -82,6 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	boxElementBtn.addEventListener("click", () => {
 		sendMessageToActiveTab({ action: "toggle-picker" });
 		window.close(); // Close popup to let user pick immediately
+	});
+
+	measureToolBtn.addEventListener("click", () => {
+		sendMessageToActiveTab({ action: "toggle-measure" });
+		window.close();
 	});
 
 	clearAllBtn.addEventListener("click", () => {

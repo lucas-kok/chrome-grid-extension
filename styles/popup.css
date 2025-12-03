@@ -14,6 +14,7 @@
 	--btn-horizontal-bg: #e74c3c;
 	--btn-ruler-bg: #f39c12;
 	--btn-box-bg: #9b59b6;
+	--btn-measure-bg: #2ecc71;
 	--btn-clear-bg: #e0e0e0;
 	--btn-clear-text: #555;
 	--btn-clear-border: 1px solid #ccc;
@@ -47,6 +48,7 @@
 		--btn-horizontal-bg: linear-gradient(135deg, #e74c3c, #c0392b);
 		--btn-ruler-bg: linear-gradient(135deg, #f39c12, #d35400);
 		--btn-box-bg: linear-gradient(135deg, #9b59b6, #8e44ad);
+		--btn-measure-bg: linear-gradient(135deg, #2ecc71, #27ae60);
 		--btn-clear-bg: #2c2e33;
 		--btn-clear-text: #a0a0a0;
 		--btn-clear-border: 1px solid #404040;
@@ -80,6 +82,7 @@
 	--btn-horizontal-bg: #e74c3c;
 	--btn-ruler-bg: #f39c12;
 	--btn-box-bg: #9b59b6;
+	--btn-measure-bg: #2ecc71;
 	--btn-clear-bg: #e0e0e0;
 	--btn-clear-text: #555;
 	--btn-clear-border: 1px solid #ccc;
@@ -111,6 +114,7 @@
 	--btn-horizontal-bg: linear-gradient(135deg, #e74c3c, #c0392b);
 	--btn-ruler-bg: linear-gradient(135deg, #f39c12, #d35400);
 	--btn-box-bg: linear-gradient(135deg, #9b59b6, #8e44ad);
+	--btn-measure-bg: linear-gradient(135deg, #2ecc71, #27ae60);
 	--btn-clear-bg: #2c2e33;
 	--btn-clear-text: #a0a0a0;
 	--btn-clear-border: 1px solid #404040;
@@ -253,6 +257,10 @@ button:hover {
 	background: var(--btn-box-bg);
 }
 
+.btn-measure {
+	background: var(--btn-measure-bg);
+}
+
 .btn-clear {
 	background: var(--btn-clear-bg);
 	color: var(--btn-clear-text);
@@ -264,7 +272,6 @@ button:hover {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-top: 15px;
 	padding: 10px;
 	background: var(--picker-bg);
 	border-radius: 8px;
@@ -274,6 +281,7 @@ button:hover {
 .checkbox-control {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 	gap: 10px;
 	margin-top: 15px;
 	padding: 10px;
@@ -299,8 +307,8 @@ button:hover {
 
 input[type="color"] {
 	border: none;
-	width: 32px;
-	height: 32px;
+	width: 24px;
+	height: 24px;
 	cursor: pointer;
 	background: none;
 	padding: 0;

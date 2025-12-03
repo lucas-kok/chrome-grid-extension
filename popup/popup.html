@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Layout Grid</title>
 		<link rel="stylesheet" href="../styles/popup.css" />
+		<link rel="stylesheet" href="../styles/measure.css" />
 	</head>
 	<body>
 		<div class="header">
@@ -61,10 +62,11 @@
 			</button>
 			<button id="toggle-ruler" class="btn-ruler">Toggle Ruler</button>
 			<button id="box-element" class="btn-box">Box Element</button>
+			<button id="measure-tool" class="btn-measure">Measure Tool</button>
 
 			<div class="checkbox-control">
-				<input type="checkbox" id="freeze-lines" checked />
 				<label for="freeze-lines">Freeze lines on axes</label>
+				<input type="checkbox" id="freeze-lines" checked />
 			</div>
 
 			<div class="color-picker">
@@ -84,6 +86,9 @@
 			</div>
 			<div class="shortcut-item">
 				<span>Shift + B</span> <span>Box Element</span>
+			</div>
+			<div class="shortcut-item">
+				<span>Shift + M</span> <span>Measure Tool</span>
 			</div>
 			<div class="shortcut-item">
 				<span>Shift + Click</span> <span>Remove Line</span>

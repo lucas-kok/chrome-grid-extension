@@ -1,0 +1,23 @@
+.layout-grid-measure-line {
+	position: fixed;
+	background-color: #007bff;
+	height: 1px;
+	z-index: 2147483647;
+	pointer-events: none;
+	transform-origin: 0 50%;
+}
+
+.layout-grid-measure-label {
+	position: fixed;
+	background-color: #007bff;
+	color: white;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-family: sans-serif;
+	z-index: 2147483647;
+	pointer-events: none;
+	white-space: nowrap;
+	transform: translate(-50%, -100%);
+	margin-top: -5px;
+}

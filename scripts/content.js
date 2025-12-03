@@ -8,8 +8,12 @@
 	let rulerElements = { top: null, left: null, corner: null };
 	let isPickingElement = false;
 	let hoveredElement = null;
-	let isFrozen = true;
+	let isFrozen = true; // Default to frozen (absolute position)
 	let scrollTicking = false;
+	let isMeasuring = false;
+	let measureStart = null;
+	let measureLine = null;
+	let measureLabel = null;
 
 	// Constants
 	const STORAGE_KEY_PREFIX = "layout-grid-lines-";
@@ -158,8 +162,188 @@
 		return line;
 	}
 
+	// Measure Tool Functions
+	function toggleMeasureTool() {
+		isMeasuring = !isMeasuring;
+		if (isMeasuring) {
+			// Disable other tools
+			if (isPickingElement) {
+				disableElementPicker();
+			}
+			document.body.style.cursor = "crosshair";
+			document.addEventListener("mousedown", handleMeasureMouseDown);
+		} else {
+			disableMeasureTool();
+		}
+	}
+
+	function disableMeasureTool() {
+		isMeasuring = false;
+		document.body.style.cursor = "";
+		document.removeEventListener("mousedown", handleMeasureMouseDown);
+		if (measureLine) {
+			measureLine.remove();
+			measureLine = null;
+		}
+		if (measureLabel) {
+			measureLabel.remove();
+			measureLabel = null;
+		}
+		measureStart = null;
+	}
+
+	function handleMeasureMouseDown(e) {
+		if (!isMeasuring || e.button !== 0) return;
+		e.preventDefault();
+		e.stopPropagation();
+
+		let startX = e.clientX;
+		let startY = e.clientY;
+
+		// Snap start point to lines
+		const snapThreshold = 10;
+		let closestDist = Infinity;
+		let snapPos = null;
+
+		lines.forEach((line) => {
+			const type = line.dataset.type;
+			const pos =
+				type === "vertical"
+					? parseFloat(line.style.left)
+					: parseFloat(line.style.top);
+
+			// Convert line pos to client coordinates if frozen (absolute)
+			// If frozen, pos is pageX/Y. We need clientX/Y for comparison with e.clientX/Y
+			// Actually, let's work in client coordinates for snapping
+			let clientPos = pos;
+			if (isFrozen) {
+				if (type === "vertical") {
+					clientPos -= window.scrollX;
+				} else {
+					clientPos -= window.scrollY;
+				}
+			}
+
+			const mousePos = type === "vertical" ? e.clientX : e.clientY;
+			const dist = Math.abs(clientPos - mousePos);
+
+			if (dist < snapThreshold && dist < closestDist) {
+				closestDist = dist;
+				if (type === "vertical") {
+					startX = clientPos;
+				} else {
+					startY = clientPos;
+				}
+			}
+		});
+
+		// If frozen, convert back to page coordinates for storage if we were storing page coords
+		// But updateMeasureVisuals takes client coordinates.
+		// So we keep startX/Y as client coordinates.
+		// Wait, updateMeasureVisuals uses measureStart.x/y as base.
+		// If we scroll while measuring, does it break?
+		// Yes, if measureStart is client coords.
+		// Let's store measureStart in Page coordinates if frozen?
+		// For simplicity, let's stick to client coordinates for the interaction, assuming no scroll while dragging.
+		// Or better, use page coordinates for everything if frozen.
+
+		// Let's use client coordinates for the measure tool interaction to be consistent with mouse events.
+		measureStart = { x: startX, y: startY };
+
+		// Create line and label if not exist
+		if (!measureLine) {
+			measureLine = document.createElement("div");
+			measureLine.className = "layout-grid-measure-line";
+			document.body.appendChild(measureLine);
+		}
+		if (!measureLabel) {
+			measureLabel = document.createElement("div");
+			measureLabel.className = "layout-grid-measure-label";
+			document.body.appendChild(measureLabel);
+		}
+
+		// Set position type based on freeze state
+		const positionType = isFrozen ? "absolute" : "fixed";
+		measureLine.style.position = positionType;
+		measureLabel.style.position = positionType;
+
+		updateMeasureVisuals(e.clientX, e.clientY, e.shiftKey);
+	}
+
+	function updateMeasureVisuals(currentX, currentY, isShiftPressed) {
+		if (!measureStart || !measureLine || !measureLabel) return;
+
+		let targetX = currentX;
+		let targetY = currentY;
+
+		// Snap end point to lines
+		const snapThreshold = 10;
+		let closestDist = Infinity;
+
+		lines.forEach((line) => {
+			const type = line.dataset.type;
+			const pos =
+				type === "vertical"
+					? parseFloat(line.style.left)
+					: parseFloat(line.style.top);
+
+			let clientPos = pos;
+			if (isFrozen) {
+				if (type === "vertical") {
+					clientPos -= window.scrollX;
+				} else {
+					clientPos -= window.scrollY;
+				}
+			}
+
+			const mousePos = type === "vertical" ? currentX : currentY;
+			const dist = Math.abs(clientPos - mousePos);
+
+			if (dist < snapThreshold && dist < closestDist) {
+				closestDist = dist;
+				if (type === "vertical") {
+					targetX = clientPos;
+				} else {
+					targetY = clientPos;
+				}
+			}
+		});
+
+		let dx = targetX - measureStart.x;
+		let dy = targetY - measureStart.y;
+
+		// Shift key constraint (straight lines)
+		if (isShiftPressed) {
+			if (Math.abs(dx) > Math.abs(dy)) {
+				targetY = measureStart.y;
+				dy = 0;
+			} else {
+				targetX = measureStart.x;
+				dx = 0;
+			}
+		}
+
+		const length = Math.sqrt(dx * dx + dy * dy);
+		const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+		// Calculate display coordinates
+		// If frozen, add scroll offset to both start and current positions
+		const scrollX = isFrozen ? window.scrollX : 0;
+		const scrollY = isFrozen ? window.scrollY : 0;
+
+		measureLine.style.left = `${measureStart.x + scrollX}px`;
+		measureLine.style.top = `${measureStart.y + scrollY}px`;
+		measureLine.style.width = `${length}px`;
+		measureLine.style.transform = `rotate(${angle}deg)`;
+
+		measureLabel.textContent = `${Math.round(length)}px`;
+		measureLabel.style.left = `${targetX + scrollX}px`;
+		measureLabel.style.top = `${targetY + scrollY}px`;
+	}
+
 	// Event Handlers
 	function handleLineMouseDown(e) {
+		if (isMeasuring) return; // Let the event bubble to document for measuring
 		if (e.button !== 0) return; // Only left click
 		e.preventDefault();
 		e.stopPropagation(); // Prevent selecting text or other elements
@@ -175,6 +359,11 @@
 	}
 
 	function handleMouseMove(e) {
+		if (isMeasuring && measureStart) {
+			updateMeasureVisuals(e.clientX, e.clientY, e.shiftKey);
+			return;
+		}
+
 		if (!isDragging || !activeLine) return;
 
 		e.preventDefault();
@@ -273,6 +462,14 @@
 	}
 
 	function handleMouseUp(e) {
+		if (isMeasuring && measureStart) {
+			measureStart = null;
+			// Keep the line visible until next click or tool disable?
+			// Or clear it? Let's keep it for now so user can read it.
+			// But if they click again, it restarts.
+			return;
+		}
+
 		if (isDragging) {
 			isDragging = false;
 			activeLine = null;
@@ -288,6 +485,8 @@
 			createLine("horizontal");
 		} else if (e.shiftKey && e.key.toLowerCase() === "b") {
 			toggleElementPicker();
+		} else if (e.shiftKey && e.key.toLowerCase() === "m") {
+			toggleMeasureTool();
 		}
 	}
 
@@ -394,6 +593,10 @@
 		isPickingElement = !isPickingElement;
 
 		if (isPickingElement) {
+			// Disable other tools
+			if (isMeasuring) {
+				disableMeasureTool();
+			}
 			document.body.style.cursor = "crosshair";
 			document.addEventListener("mouseover", handlePickerHover, true);
 			document.addEventListener("click", handlePickerClick, true);
@@ -561,6 +764,37 @@
 
 		isFrozen = newIsFrozen;
 
+		// Update measure line and label if they exist
+		if (measureLine && measureLabel) {
+			const positionType = isFrozen ? "absolute" : "fixed";
+			measureLine.style.position = positionType;
+			measureLabel.style.position = positionType;
+
+			let lineLeft = parseFloat(measureLine.style.left);
+			let lineTop = parseFloat(measureLine.style.top);
+			let labelLeft = parseFloat(measureLabel.style.left);
+			let labelTop = parseFloat(measureLabel.style.top);
+
+			if (isFrozen) {
+				// Fixed -> Absolute: Add scroll
+				lineLeft += window.scrollX;
+				lineTop += window.scrollY;
+				labelLeft += window.scrollX;
+				labelTop += window.scrollY;
+			} else {
+				// Absolute -> Fixed: Subtract scroll
+				lineLeft -= window.scrollX;
+				lineTop -= window.scrollY;
+				labelLeft -= window.scrollX;
+				labelTop -= window.scrollY;
+			}
+
+			measureLine.style.left = `${lineLeft}px`;
+			measureLine.style.top = `${lineTop}px`;
+			measureLabel.style.left = `${labelLeft}px`;
+			measureLabel.style.top = `${labelTop}px`;
+		}
+
 		lines.forEach((line) => {
 			const type = line.dataset.type;
 			let currentPos =
@@ -632,6 +866,9 @@
 						break;
 					case "update-freeze":
 						updateFreezeState(request.isFrozen);
+						break;
+					case "toggle-measure":
+						toggleMeasureTool();
 						break;
 				}
 			}
