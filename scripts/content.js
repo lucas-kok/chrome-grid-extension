@@ -534,15 +534,17 @@
 	}
 
 	function handleKeyDown(e) {
-		// Shortcuts: Ctrl + Shift + V, Ctrl + Shift + H
-		const isCtrl = e.ctrlKey || e.metaKey;
-		if (isCtrl && e.shiftKey && e.key.toLowerCase() === "v") {
+		// Shortcuts: Alt + Shift + V, Alt + Shift + H, etc.
+		// Ctrl + Shift + B conflicts with Bookmarks bar
+		// Ctrl + Shift + M conflicts with Profile switcher
+		// Ctrl + Shift + V conflicts with Paste as plain text
+		if (e.altKey && e.shiftKey && e.key.toLowerCase() === "v") {
 			createLine("vertical");
-		} else if (isCtrl && e.shiftKey && e.key.toLowerCase() === "h") {
+		} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === "h") {
 			createLine("horizontal");
-		} else if (isCtrl && e.shiftKey && e.key.toLowerCase() === "b") {
+		} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === "b") {
 			toggleElementPicker();
-		} else if (isCtrl && e.shiftKey && e.key.toLowerCase() === "m") {
+		} else if (e.altKey && e.shiftKey && e.key.toLowerCase() === "m") {
 			toggleMeasureTool();
 		}
 	}
