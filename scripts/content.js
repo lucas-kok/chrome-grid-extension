@@ -448,6 +448,42 @@
 				});
 			}
 
+			// Snap to ruler ticks (every 10px)
+			if (isRulerVisible) {
+				// Ruler ticks are fixed to viewport at 0, 10, 20...
+				// We need to check if current position aligns with a tick
+				// If frozen, newPos is page coordinate. Convert to client coordinate for check.
+				let clientPos = newPos;
+				if (isFrozen) {
+					if (type === "vertical") {
+						clientPos -= window.scrollX;
+					} else {
+						clientPos -= window.scrollY;
+					}
+				}
+
+				// Find nearest multiple of 10
+				const remainder = clientPos % 10;
+				let nearestTick = clientPos - remainder;
+				if (remainder > 5) {
+					nearestTick += 10;
+				}
+
+				const dist = Math.abs(clientPos - nearestTick);
+				if (dist < snapThreshold && dist < closestDist) {
+					closestDist = dist;
+					// Convert back to page coordinate if needed
+					snapPos = nearestTick;
+					if (isFrozen) {
+						if (type === "vertical") {
+							snapPos += window.scrollX;
+						} else {
+							snapPos += window.scrollY;
+						}
+					}
+				}
+			}
+
 			if (snapPos !== null) {
 				newPos = snapPos;
 			}
@@ -781,56 +817,84 @@
 		// Set canvas dimensions (accounting for device pixel ratio for sharpness)
 		const dpr = window.devicePixelRatio || 1;
 
-		topCanvas.width = width * dpr;
-		topCanvas.height = 20 * dpr;
+		topCanvas.width = Math.round(width * dpr);
+		topCanvas.height = Math.round(20 * dpr);
 		topCanvas.style.width = `${width}px`;
 		topCanvas.style.height = "20px";
 
-		leftCanvas.width = 20 * dpr;
-		leftCanvas.height = height * dpr;
+		leftCanvas.width = Math.round(20 * dpr);
+		leftCanvas.height = Math.round(height * dpr);
 		leftCanvas.style.width = "20px";
 		leftCanvas.style.height = `${height}px`;
 
 		const ctxTop = topCanvas.getContext("2d");
 		const ctxLeft = leftCanvas.getContext("2d");
 
-		ctxTop.scale(dpr, dpr);
-		ctxLeft.scale(dpr, dpr);
+		// Reset transforms to ensure we work in device pixels
+		ctxTop.resetTransform();
+		ctxLeft.resetTransform();
 
-		ctxTop.clearRect(0, 0, width, 20);
-		ctxLeft.clearRect(0, 0, 20, height);
+		ctxTop.clearRect(0, 0, topCanvas.width, topCanvas.height);
+		ctxLeft.clearRect(0, 0, leftCanvas.width, leftCanvas.height);
 
-		ctxTop.fillStyle = "#333";
-		ctxLeft.fillStyle = "#333";
+		// Styles
+		const tickColor = "#d1d5db"; // Light gray
+		const tickColorLarge = "#9ca3af"; // Medium gray
+		const textColor = "#6b7280"; // Darker gray
+		const font = `500 ${
+			9 * dpr
+		}px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
 
-		ctxTop.font = "10px sans-serif";
-		ctxLeft.font = "10px sans-serif";
+		ctxTop.font = font;
+		ctxTop.textBaseline = "top";
+
+		ctxLeft.font = font;
+		ctxLeft.textBaseline = "top";
 
 		// Draw Top Ruler
 		for (let i = 0; i < width; i += 10) {
+			if (i === 0) continue;
 			const isLarge = i % 100 === 0;
 			const isMedium = i % 50 === 0;
-			const tickHeight = isLarge ? 15 : isMedium ? 10 : 5;
+			const tickHeight = isLarge ? 20 : isMedium ? 8 : 5;
 
-			ctxTop.fillRect(i, 0, 1, tickHeight);
+			ctxTop.fillStyle = isLarge ? tickColorLarge : tickColor;
 
-			if (isLarge && i > 0) {
-				ctxTop.fillText(i.toString(), i + 2, 12);
+			// Draw sharp line aligned to device pixels
+			const x = Math.round(i * dpr);
+			const y = Math.round((20 - tickHeight) * dpr);
+			const w = Math.max(1, Math.round(1 * dpr));
+			const h = Math.round(tickHeight * dpr);
+
+			ctxTop.fillRect(x, y, w, h);
+
+			if (isLarge) {
+				ctxTop.fillStyle = textColor;
+				ctxTop.fillText(i.toString(), (i + 4) * dpr, 3 * dpr);
 			}
 		}
 
 		// Draw Left Ruler
 		for (let i = 0; i < height; i += 10) {
+			if (i === 0) continue;
 			const isLarge = i % 100 === 0;
 			const isMedium = i % 50 === 0;
-			const tickWidth = isLarge ? 15 : isMedium ? 10 : 5;
+			const tickWidth = isLarge ? 20 : isMedium ? 8 : 5;
 
-			ctxLeft.fillRect(0, i, tickWidth, 1);
+			ctxLeft.fillStyle = isLarge ? tickColorLarge : tickColor;
 
-			if (isLarge && i > 0) {
-				// Rotate text for vertical ruler
+			// Draw sharp line aligned to device pixels
+			const x = Math.round((20 - tickWidth) * dpr);
+			const y = Math.round(i * dpr);
+			const w = Math.round(tickWidth * dpr);
+			const h = Math.max(1, Math.round(1 * dpr));
+
+			ctxLeft.fillRect(x, y, w, h);
+
+			if (isLarge) {
+				ctxLeft.fillStyle = textColor;
 				ctxLeft.save();
-				ctxLeft.translate(12, i + 2);
+				ctxLeft.translate(12 * dpr, (i + 4) * dpr);
 				ctxLeft.rotate(-Math.PI / 2);
 				ctxLeft.fillText(i.toString(), 0, 0);
 				ctxLeft.restore();
