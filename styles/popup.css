@@ -135,6 +135,7 @@ html {
 
 body {
 	width: 280px;
+	min-height: 450px;
 	padding: 20px;
 	font-family: var(--font-family);
 	background-color: var(--bg-color);
@@ -268,6 +269,27 @@ button:hover {
 	background: var(--picker-bg);
 	border-radius: 8px;
 	border: var(--picker-border);
+}
+
+.checkbox-control {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 15px;
+	padding: 10px;
+	background: var(--picker-bg);
+	border-radius: 8px;
+	border: var(--picker-border);
+}
+
+.checkbox-control label {
+	font-size: 13px;
+	color: var(--picker-label);
+	cursor: pointer;
+}
+
+.checkbox-control input[type="checkbox"] {
+	cursor: pointer;
 }
 
 .color-picker label {

@@ -8,6 +8,8 @@
 	let rulerElements = { top: null, left: null, corner: null };
 	let isPickingElement = false;
 	let hoveredElement = null;
+	let isFrozen = true;
+	let scrollTicking = false;
 
 	// Constants
 	const STORAGE_KEY_PREFIX = "layout-grid-lines-";
@@ -25,18 +27,80 @@
 
 	// Initialize
 	function init() {
-		loadLines();
-		setupEventListeners();
+		// Load settings first, then lines
+		chrome.storage.local.get(
+			["lineColor", "rulerVisible", "freezeLines"],
+			(result) => {
+				if (result.lineColor) {
+					defaultColor = result.lineColor;
+				}
+				if (result.rulerVisible) {
+					toggleRuler(true);
+				}
+				if (result.freezeLines !== undefined) {
+					isFrozen = result.freezeLines;
+				}
 
-		// Load default color preference
-		chrome.storage.local.get(["lineColor", "rulerVisible"], (result) => {
-			if (result.lineColor) {
-				defaultColor = result.lineColor;
+				loadLines();
+				setupEventListeners();
+
+				// Watch for page resize to update line dimensions
+				const resizeObserver = new ResizeObserver(() => {
+					lines.forEach((line) => updateLineDimensions(line));
+				});
+				if (document.body) {
+					resizeObserver.observe(document.body);
+				}
+				if (document.documentElement) {
+					resizeObserver.observe(document.documentElement);
+				}
 			}
-			if (result.rulerVisible) {
-				toggleRuler(true);
+		);
+	}
+
+	// Helper to update line dimensions based on freeze state
+	function updateLineDimensions(line, docHeight, docWidth) {
+		const type = line.dataset.type;
+		if (isFrozen) {
+			const height =
+				docHeight ||
+				Math.max(
+					document.documentElement.scrollHeight,
+					document.body.scrollHeight
+				);
+			const width =
+				docWidth ||
+				Math.max(
+					document.documentElement.scrollWidth,
+					document.body.scrollWidth
+				);
+
+			// Absolute positioning: span full document
+			if (type === "vertical") {
+				line.style.top = "0";
+				line.style.bottom = "auto";
+				line.style.height = `${height}px`;
+				line.style.width = "";
+			} else {
+				line.style.left = "0";
+				line.style.right = "auto";
+				line.style.width = `${width}px`;
+				line.style.height = "";
 			}
-		});
+		} else {
+			// Fixed positioning: span viewport
+			if (type === "vertical") {
+				line.style.top = "0";
+				line.style.bottom = "0";
+				line.style.height = "auto";
+				line.style.width = "";
+			} else {
+				line.style.left = "0";
+				line.style.right = "0";
+				line.style.width = "auto";
+				line.style.height = "";
+			}
+		}
 	}
 
 	// Create a line element
@@ -49,19 +113,34 @@
 				: "layout-grid-line-horizontal"
 		);
 		line.style.backgroundColor = color;
+		line.style.position = isFrozen ? "absolute" : "fixed";
 
 		// Store metadata on the element
 		line.dataset.type = type;
 
+		updateLineDimensions(line);
+
 		if (type === "vertical") {
 			// Default to center if no position provided
-			const left =
-				position !== undefined ? position : window.innerWidth / 2;
+			let left;
+			if (position !== undefined) {
+				left = position;
+			} else {
+				// If creating new line, center in viewport
+				// If frozen, add scrollX to make it center of visible area on page
+				left = window.innerWidth / 2 + (isFrozen ? window.scrollX : 0);
+			}
 			line.style.left = `${left}px`;
 		} else {
 			// Default to center if no position provided
-			const top =
-				position !== undefined ? position : window.innerHeight / 2;
+			let top;
+			if (position !== undefined) {
+				top = position;
+			} else {
+				// If creating new line, center in viewport
+				// If frozen, add scrollY to make it center of visible area on page
+				top = window.innerHeight / 2 + (isFrozen ? window.scrollY : 0);
+			}
 			line.style.top = `${top}px`;
 		}
 
@@ -93,12 +172,6 @@
 
 		activeLine = e.target;
 		isDragging = true;
-
-		selectLine(activeLine);
-	}
-	function handleLineRightClick(e) {
-		e.preventDefault();
-		removeLine(e.target);
 	}
 
 	function handleMouseMove(e) {
@@ -107,7 +180,15 @@
 		e.preventDefault();
 
 		const type = activeLine.dataset.type;
-		let newPos = type === "vertical" ? e.clientX : e.clientY;
+		// If frozen (absolute), use page coordinates. If fixed, use client coordinates.
+		let newPos =
+			type === "vertical"
+				? isFrozen
+					? e.pageX
+					: e.clientX
+				: isFrozen
+				? e.pageY
+				: e.clientY;
 
 		// Snapping logic (hold Alt to disable, or enable by default and hold Alt to disable?)
 		// Let's make it snap by default, hold Alt to disable
@@ -139,10 +220,15 @@
 
 			if (elemBelow) {
 				const rect = elemBelow.getBoundingClientRect();
+				// rect is always viewport relative.
+				// If isFrozen, we need to convert rect edges to page coordinates for comparison with newPos
+				const scrollX = isFrozen ? window.scrollX : 0;
+				const scrollY = isFrozen ? window.scrollY : 0;
+
 				const edges =
 					type === "vertical"
-						? [rect.left, rect.right]
-						: [rect.top, rect.bottom];
+						? [rect.left + scrollX, rect.right + scrollX]
+						: [rect.top + scrollY, rect.bottom + scrollY];
 
 				edges.forEach((edge) => {
 					const dist = Math.abs(edge - newPos);
@@ -167,6 +253,25 @@
 		updateMeasurements();
 	}
 
+	function handleScroll() {
+		if (!isFrozen) return;
+		if (!scrollTicking) {
+			window.requestAnimationFrame(() => {
+				const h = Math.max(
+					document.documentElement.scrollHeight,
+					document.body.scrollHeight
+				);
+				const w = Math.max(
+					document.documentElement.scrollWidth,
+					document.body.scrollWidth
+				);
+				lines.forEach((line) => updateLineDimensions(line, h, w));
+				scrollTicking = false;
+			});
+			scrollTicking = true;
+		}
+	}
+
 	function handleMouseUp(e) {
 		if (isDragging) {
 			isDragging = false;
@@ -181,6 +286,8 @@
 			createLine("vertical");
 		} else if (e.shiftKey && e.key.toLowerCase() === "h") {
 			createLine("horizontal");
+		} else if (e.shiftKey && e.key.toLowerCase() === "b") {
+			toggleElementPicker();
 		}
 	}
 
@@ -206,6 +313,10 @@
 			line.style.backgroundColor = color;
 		});
 		saveLines();
+	}
+
+	function updateMeasurements() {
+		// Placeholder
 	}
 
 	// Persistence
@@ -305,6 +416,14 @@
 		}
 	}
 
+	function handlePickerOut(e) {
+		if (!isPickingElement) return;
+		if (hoveredElement && e.relatedTarget === null) {
+			hoveredElement.style.outline = "";
+			hoveredElement = null;
+		}
+	}
+
 	function handlePickerHover(e) {
 		if (!isPickingElement) return;
 		e.preventDefault();
@@ -326,14 +445,7 @@
 		}
 
 		hoveredElement.style.outline = `2px dashed ${defaultColor}`;
-	}
-
-	function handlePickerOut(e) {
-		if (!isPickingElement) return;
-		if (e.target === hoveredElement) {
-			e.target.style.outline = "";
-			hoveredElement = null;
-		}
+		hoveredElement.style.outlineOffset = "2px";
 	}
 
 	function handlePickerClick(e) {
@@ -344,11 +456,17 @@
 		if (hoveredElement) {
 			const rect = hoveredElement.getBoundingClientRect();
 
+			// rect is viewport relative.
+			// If isFrozen, we need to convert to page coordinates.
+			const scrollX = isFrozen ? window.scrollX : 0;
+			const scrollY = isFrozen ? window.scrollY : 0;
+
 			// Create 4 lines
-			createLine("vertical", rect.left);
-			createLine("vertical", rect.right);
-			createLine("horizontal", rect.top);
-			createLine("horizontal", rect.bottom);
+			// Shift left and top lines by -2px (line width) so they sit outside the element, matching right and bottom behavior
+			createLine("vertical", rect.left + scrollX - 2);
+			createLine("vertical", rect.right + scrollX);
+			createLine("horizontal", rect.top + scrollY - 2);
+			createLine("horizontal", rect.bottom + scrollY);
 
 			saveLines(); // Explicitly save after creating multiple lines
 
@@ -438,11 +556,57 @@
 		}
 	}
 
+	function updateFreezeState(newIsFrozen) {
+		if (isFrozen === newIsFrozen) return;
+
+		isFrozen = newIsFrozen;
+
+		lines.forEach((line) => {
+			const type = line.dataset.type;
+			let currentPos =
+				type === "vertical"
+					? parseFloat(line.style.left)
+					: parseFloat(line.style.top);
+
+			// Convert position
+			if (isFrozen) {
+				// Switching from Fixed to Absolute (Frozen)
+				// Add scroll offset
+				if (type === "vertical") {
+					currentPos += window.scrollX;
+				} else {
+					currentPos += window.scrollY;
+				}
+				line.style.position = "absolute";
+			} else {
+				// Switching from Absolute to Fixed
+				// Subtract scroll offset
+				if (type === "vertical") {
+					currentPos -= window.scrollX;
+				} else {
+					currentPos -= window.scrollY;
+				}
+				line.style.position = "fixed";
+			}
+
+			if (type === "vertical") {
+				line.style.left = `${currentPos}px`;
+			} else {
+				line.style.top = `${currentPos}px`;
+			}
+
+			updateLineDimensions(line);
+		});
+
+		saveLines();
+	}
+
 	// Global Listeners
 	function setupEventListeners() {
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", handleMouseUp);
 		document.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("scroll", handleScroll, { passive: true });
 
 		// Listen for messages from popup
 		chrome.runtime.onMessage.addListener(
@@ -465,6 +629,9 @@
 						break;
 					case "toggle-picker":
 						toggleElementPicker();
+						break;
+					case "update-freeze":
+						updateFreezeState(request.isFrozen);
 						break;
 				}
 			}

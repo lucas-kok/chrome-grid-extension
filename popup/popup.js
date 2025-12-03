@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const clearAllBtn = document.getElementById("clear-all");
 	const colorInput = document.getElementById("line-color");
 	const themeToggleBtn = document.getElementById("theme-toggle");
+	const freezeLinesCheckbox = document.getElementById("freeze-lines");
 
 	// Theme handling
 	function applyTheme(theme) {
@@ -17,14 +18,20 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	// Load saved settings
-	chrome.storage.local.get(["lineColor", "theme"], (result) => {
-		if (result.lineColor) {
-			colorInput.value = result.lineColor;
+	chrome.storage.local.get(
+		["lineColor", "theme", "freezeLines"],
+		(result) => {
+			if (result.lineColor) {
+				colorInput.value = result.lineColor;
+			}
+			if (result.theme) {
+				applyTheme(result.theme);
+			}
+			if (result.freezeLines !== undefined) {
+				freezeLinesCheckbox.checked = result.freezeLines;
+			}
 		}
-		if (result.theme) {
-			applyTheme(result.theme);
-		}
-	});
+	);
 
 	themeToggleBtn.addEventListener("click", () => {
 		const currentTheme =
@@ -85,5 +92,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		const newColor = e.target.value;
 		chrome.storage.local.set({ lineColor: newColor });
 		sendMessageToActiveTab({ action: "update-color", color: newColor });
+	});
+
+	freezeLinesCheckbox.addEventListener("change", (e) => {
+		const isFrozen = e.target.checked;
+		chrome.storage.local.set({ freezeLines: isFrozen });
+		sendMessageToActiveTab({ action: "update-freeze", isFrozen: isFrozen });
 	});
 });
