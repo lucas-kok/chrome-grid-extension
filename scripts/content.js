@@ -14,6 +14,7 @@
 	let measureStart = null;
 	let measureLine = null;
 	let measureLabel = null;
+	let pickerLabel = null;
 
 	// Constants
 	const STORAGE_KEY_PREFIX = "layout-grid-lines-";
@@ -28,6 +29,25 @@
 			window.location.pathname
 		);
 	};
+
+	function getContrastColor(hexColor) {
+		// Handle short hex #f00
+		let hex = hexColor.replace("#", "");
+		if (hex.length === 3) {
+			hex = hex
+				.split("")
+				.map((c) => c + c)
+				.join("");
+		}
+
+		const r = parseInt(hex.substr(0, 2), 16);
+		const g = parseInt(hex.substr(2, 2), 16);
+		const b = parseInt(hex.substr(4, 2), 16);
+
+		const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+
+		return yiq >= 128 ? "black" : "white";
+	}
 
 	// Initialize
 	function init() {
@@ -597,6 +617,17 @@
 			if (isMeasuring) {
 				disableMeasureTool();
 			}
+
+			// Create label if not exists
+			if (!pickerLabel) {
+				pickerLabel = document.createElement("div");
+				pickerLabel.className = "layout-grid-measure-label";
+				pickerLabel.style.display = "none";
+				pickerLabel.style.zIndex = "2147483647";
+				pickerLabel.style.pointerEvents = "none";
+				document.body.appendChild(pickerLabel);
+			}
+
 			document.body.style.cursor = "crosshair";
 			document.addEventListener("mouseover", handlePickerHover, true);
 			document.addEventListener("click", handlePickerClick, true);
@@ -617,6 +648,10 @@
 			hoveredElement.style.outline = "";
 			hoveredElement = null;
 		}
+		if (pickerLabel) {
+			pickerLabel.remove();
+			pickerLabel = null;
+		}
 	}
 
 	function handlePickerOut(e) {
@@ -624,6 +659,7 @@
 		if (hoveredElement && e.relatedTarget === null) {
 			hoveredElement.style.outline = "";
 			hoveredElement = null;
+			if (pickerLabel) pickerLabel.style.display = "none";
 		}
 	}
 
@@ -641,14 +677,57 @@
 		if (
 			hoveredElement.classList.contains("layout-grid-line") ||
 			hoveredElement.classList.contains("layout-grid-ruler") ||
-			hoveredElement.classList.contains("layout-grid-ruler-corner")
+			hoveredElement.classList.contains("layout-grid-ruler-corner") ||
+			hoveredElement.classList.contains("layout-grid-measure-label")
 		) {
 			hoveredElement = null;
+			if (pickerLabel) pickerLabel.style.display = "none";
 			return;
 		}
 
 		hoveredElement.style.outline = `2px dashed ${defaultColor}`;
 		hoveredElement.style.outlineOffset = "2px";
+
+		if (pickerLabel) {
+			const rect = hoveredElement.getBoundingClientRect();
+			const width = Math.round(rect.width);
+			const height = Math.round(rect.height);
+
+			pickerLabel.textContent = `${width}px x ${height}px`;
+			pickerLabel.style.backgroundColor = defaultColor;
+			pickerLabel.style.color = getContrastColor(defaultColor);
+
+			const scrollX = isFrozen ? window.scrollX : 0;
+			const scrollY = isFrozen ? window.scrollY : 0;
+
+			const positionType = isFrozen ? "absolute" : "fixed";
+			pickerLabel.style.position = positionType;
+
+			const outlineOffset = 4; // 2px outline + 2px offset
+			const gap = 5; // A few pixels gap
+
+			// Position at top-left of element, aligned with outline
+			let left = rect.left + scrollX - outlineOffset;
+			let top;
+			let transform;
+
+			// Check if enough space on top (approx 30px for label height + gap)
+			if (rect.top >= 30) {
+				// Position above
+				top = rect.top + scrollY - outlineOffset - gap;
+				transform = "translateY(-100%)";
+			} else {
+				// Position below
+				top = rect.bottom + scrollY + outlineOffset + gap;
+				transform = "none";
+			}
+
+			pickerLabel.style.top = `${top}px`;
+			pickerLabel.style.left = `${left}px`;
+			pickerLabel.style.transform = transform;
+			pickerLabel.style.marginTop = "0";
+			pickerLabel.style.display = "block";
+		}
 	}
 
 	function handlePickerClick(e) {
@@ -666,9 +745,9 @@
 
 			// Create 4 lines
 			// Shift left and top lines by -2px (line width) so they sit outside the element, matching right and bottom behavior
-			createLine("vertical", rect.left + scrollX - 2);
+			createLine("vertical", rect.left + scrollX);
 			createLine("vertical", rect.right + scrollX);
-			createLine("horizontal", rect.top + scrollY - 2);
+			createLine("horizontal", rect.top + scrollY);
 			createLine("horizontal", rect.bottom + scrollY);
 
 			saveLines(); // Explicitly save after creating multiple lines
